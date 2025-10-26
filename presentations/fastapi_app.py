@@ -39,7 +39,7 @@ def create_app() -> FastAPI:
 
             try:
                 response = requests.get(value)
-                if response.status_code >= 400:
+                if response.status_code > 400:
                     raise ValueError(f"Ошибка {response.status_code}")
 
             except requests.exceptions.RequestException as e:
