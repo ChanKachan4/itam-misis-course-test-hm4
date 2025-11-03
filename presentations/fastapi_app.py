@@ -37,14 +37,6 @@ def create_app() -> FastAPI:
             if "localhost" in value or "127.0.0.1" in value:
                 return value
 
-            try:
-                response = requests.get(value)
-                if response.status_code >= 400:
-                    raise ValueError(f"Ошибка {response.status_code}")
-
-            except requests.exceptions.RequestException as e:
-                raise ValueError(f"Невозможно перейти по ссылке: {str(e)}")
-
             return value
 
     @app.middleware("http")
@@ -63,17 +55,22 @@ def create_app() -> FastAPI:
         return f"http://localhost:8000/{short_link}"
 
     @app.post("/link")
-    def create_link(put_link_request: PutLink) -> PutLink:
-        short_link = short_link_service.create_link(put_link_request.link)
+    async def create_link(put_link_request: PutLink) -> PutLink:
+        short_link = await short_link_service.create_link(put_link_request.link)
         return PutLink(link=_service_link_to_real(short_link))
 
     @app.get("/{link}")
-    def get_link(link: str) -> Response:
-        real_link = short_link_service.get_real_link(link)
+    async def get_link(link: str, request: Request) -> Response:
+        real_link = await short_link_service.get_real_link(link, request)
 
         if real_link is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Short link not found:(")
 
         return Response(status_code=status.HTTP_301_MOVED_PERMANENTLY, headers={"Location": real_link})
+
+    @app.get("/{short_link}/statistics")
+    async def get_statistics(short_link: str, page: int = 1, page_size: int = 10):
+        statistic = await short_link_service.get_link_statistics(short_link, page=page, page_size=page_size)
+        return statistic
 
     return app
