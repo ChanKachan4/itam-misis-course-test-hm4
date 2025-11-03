@@ -37,14 +37,6 @@ def create_app() -> FastAPI:
             if "localhost" in value or "127.0.0.1" in value:
                 return value
 
-            try:
-                response = requests.get(value)
-                if response.status_code > 400:
-                    raise ValueError(f"Ошибка {response.status_code}")
-
-            except requests.exceptions.RequestException as e:
-                raise ValueError(f"Невозможно перейти по ссылке: {str(e)}")
-
             return value
 
     @app.middleware("http")
