@@ -61,7 +61,10 @@ def create_app() -> FastAPI:
 
     @app.get("/{link}")
     async def get_link(link: str, request: Request) -> Response:
-        real_link = await short_link_service.get_real_link(link, request)
+        user_agent = request.headers.get("user-agent", "")
+        ip = request.client.host
+
+        real_link = await short_link_service.get_real_link(short_link=link, user_agent=user_agent, ip=ip)
 
         if real_link is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Short link not found:(")

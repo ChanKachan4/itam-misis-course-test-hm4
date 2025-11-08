@@ -14,16 +14,16 @@ class LinkService:
 
         return short_link
 
-    async def get_real_link(self, short_link: str, request: Request) -> str | None:
+    async def get_real_link(self, short_link: str, user_agent: str, ip: str) -> str | None:
         link = await self._link_repository.get_link(short_link=short_link)
         if link is None:
             return None
-        else:
-            await self._link_repository.create_link_usage(
-                link_id=link.id,
-                user_agent=request.headers.get("user-agent", ""),
-                ip=request.client.host
-            )
+
+        await self._link_repository.create_link_usage(
+            link_id=link.id,
+            user_agent=user_agent,
+            ip=ip
+        )
 
         return str(link.real_link)
 
