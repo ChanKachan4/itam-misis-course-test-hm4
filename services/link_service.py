@@ -1,15 +1,31 @@
 from utils.utils_random import random_alfanum
+from repositories.link_repository import LinkRepository
+from fastapi import Request
 
 
 class LinkService:
     def __init__(self) -> None:
-        self.short_link_to_real_link: dict[str, str] = {}
+        self._link_repository = LinkRepository()
 
-    def create_link(self, link: str) -> str:
+    async def create_link(self, real_link: str) -> str:
         short_link = random_alfanum(5)
-        self.short_link_to_real_link[short_link] = link
+
+        await self._link_repository.create_link(short_link, real_link)
 
         return short_link
 
-    def get_real_link(self, link: str) -> str | None:
-        return self.short_link_to_real_link.get(link)
+    async def get_real_link(self, short_link: str, user_agent: str, ip: str) -> str | None:
+        link = await self._link_repository.get_link(short_link=short_link)
+        if link is None:
+            return None
+
+        await self._link_repository.create_link_usage(
+            link_id=link.id,
+            user_agent=user_agent,
+            ip=ip
+        )
+
+        return str(link.real_link)
+
+    async def get_link_statistics(self, short_link: str, page: int = 1, page_size: int = 10):
+        return await self._link_repository.get_link_usage(short_link, page, page_size)

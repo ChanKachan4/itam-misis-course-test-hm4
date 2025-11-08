@@ -55,17 +55,25 @@ def create_app() -> FastAPI:
         return f"http://localhost:8000/{short_link}"
 
     @app.post("/link")
-    def create_link(put_link_request: PutLink) -> PutLink:
-        short_link = short_link_service.create_link(put_link_request.link)
+    async def create_link(put_link_request: PutLink) -> PutLink:
+        short_link = await short_link_service.create_link(put_link_request.link)
         return PutLink(link=_service_link_to_real(short_link))
 
     @app.get("/{link}")
-    def get_link(link: str) -> Response:
-        real_link = short_link_service.get_real_link(link)
+    async def get_link(link: str, request: Request) -> Response:
+        user_agent = request.headers.get("user-agent", "")
+        ip = request.client.host
+
+        real_link = await short_link_service.get_real_link(short_link=link, user_agent=user_agent, ip=ip)
 
         if real_link is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Short link not found:(")
 
         return Response(status_code=status.HTTP_301_MOVED_PERMANENTLY, headers={"Location": real_link})
+
+    @app.get("/{short_link}/statistics")
+    async def get_statistics(short_link: str, page: int = 1, page_size: int = 10):
+        statistic = await short_link_service.get_link_statistics(short_link, page=page, page_size=page_size)
+        return statistic
 
     return app
