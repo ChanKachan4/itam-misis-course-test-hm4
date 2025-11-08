@@ -3,7 +3,6 @@ from typing import Callable, Awaitable
 from fastapi import FastAPI, HTTPException, Response, status, Request, responses
 from pydantic import BaseModel, validator
 from services.link_service import LinkService
-import requests
 from loguru import logger
 
 

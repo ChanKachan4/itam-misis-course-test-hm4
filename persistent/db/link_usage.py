@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Text, DateTime
 from .link import utcnow, _uuid4_at_str
-from sqlalchemy.orm import declarative_base
 from .base import Base
 
 
