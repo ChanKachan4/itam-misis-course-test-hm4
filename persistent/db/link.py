@@ -2,7 +2,6 @@ import uuid
 from datetime import UTC, datetime
 from .base import Base
 from sqlalchemy import Column, Text, DateTime
-from sqlalchemy.orm import declarative_base
 
 
 def _uuid4_at_str() -> str:
